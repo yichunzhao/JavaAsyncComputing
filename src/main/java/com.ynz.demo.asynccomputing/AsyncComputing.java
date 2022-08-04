@@ -9,7 +9,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class AsyncComputing {
-  private static List<Future<Integer>> futures = new ArrayList<>();
+  private static final List<Future<Integer>> futures = new ArrayList<>();
 
   public static void main(String[] args) {
 
@@ -22,7 +22,7 @@ public class AsyncComputing {
       futures.add(future);
     }
 
-    // for the main thread, we check if all futures have been done.
+    // the main thread check if all futures have been done in other threads.
     while (true) {
       boolean allFuturesDone = true;
 
@@ -33,15 +33,16 @@ public class AsyncComputing {
       if (allFuturesDone) break;
     }
 
-    futures.forEach(future -> {
-      try {
-        System.out.println(future.get());
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      } catch (ExecutionException e) {
-        e.printStackTrace();
-      }
-    });
+    futures.forEach(
+        future -> {
+          try {
+            System.out.println(future.get());
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          } catch (ExecutionException e) {
+            e.printStackTrace();
+          }
+        });
 
     // terminate executor
     if (!executorService.isTerminated()) {
