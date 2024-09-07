@@ -2,56 +2,54 @@ package com.ynz.demo.asynccomputing;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
+/**
+ * The AsyncComputing class demonstrates the use of CompletableFuture to run tasks asynchronously.
+ */
 public class AsyncComputing {
-  private static final List<Future<Integer>> futures = new ArrayList<>();
+    private static final List<CompletableFuture<String>> futures = new ArrayList<>();
 
-  public static void main(String[] args) {
+    /**
+     * The main method is the entry point of the application.
+     *
+     * @param args Command line arguments
+     */
+    public static void main(String[] args) {
+        // Create a thread pool with a number of threads equal to the number of available processors
+        var threadNumber = Runtime.getRuntime().availableProcessors();
+        System.out.println("Number of available processors: " + threadNumber);
 
-    ExecutorService executorService =
-        Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        // Create a thread pool with a number of threads equal to the number of available processors
+        ExecutorService executorService = Executors.newFixedThreadPool(threadNumber);
 
-    // imagine we may run all tasks in parallel processes by a pool of threads.
-    for (int i = 0; i < 8; i++) {
-      Future<Integer> future = executorService.submit(new PrintNumberTask());
-      futures.add(future);
-    }
+        // Submit 18 tasks to the executor service, and run each task asynchronously and return completable future
+        for (int i = 0; i < 18; i++) {
 
-    // the main thread check if all futures have been done in other threads.
-    while (true) {
-      boolean allFuturesDone = true;
+            // Run the task asynchronously and return a completable future
+            var future = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return new RandomNumberGeneratorTask().call();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }, executorService);
 
-      for (Future<Integer> future : futures) {
-        allFuturesDone = allFuturesDone && future.isDone();
-      }
+            futures.add(future);
+        }
 
-      if (allFuturesDone) break;
-    }
+        // For each future, get the result and print it
+        for (var future : futures) {
+            future.thenAccept(System.out::println)
+                  .exceptionally(throwable -> {
+                      System.out.println(throwable.getMessage());
+                      return null;
+                  });
+        }
 
-    futures.forEach(
-        future -> {
-          try {
-            System.out.println(future.get());
-          } catch (InterruptedException e) {
-            e.printStackTrace();
-          } catch (ExecutionException e) {
-            e.printStackTrace();
-          }
-        });
-
-    // terminate executor
-    if (!executorService.isTerminated()) {
-      try {
-        executorService.awaitTermination(200, TimeUnit.MILLISECONDS);
+        // Shutdown the executor service
         executorService.shutdown();
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
     }
-  }
 }
