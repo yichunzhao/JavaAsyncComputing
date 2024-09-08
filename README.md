@@ -87,3 +87,90 @@ In this example:
 `CompletableFuture` brings a modern approach to asynchronous programming in Java. It simplifies the execution of non-blocking tasks, enhances error handling, and allows for smooth composition of multiple asynchronous operations, making it an essential tool for building efficient and scalable concurrent applications.
 
 
+# Java 8 CompletableFuture Explanation
+
+`CompletableFuture` is a powerful feature introduced in Java 8 for working with asynchronous computations. It provides a rich set of methods for composing, combining, and handling asynchronous operations.
+
+## Key Concepts and Features
+
+### 1. Creating a CompletableFuture
+
+You can create and start an asynchronous computation using `CompletableFuture.supplyAsync()`:
+
+```java
+CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+    // Simulating a long-running task
+    try {
+        TimeUnit.SECONDS.sleep(1);
+    } catch (InterruptedException e) {
+        throw new IllegalStateException(e);
+    }
+    return "Result of the asynchronous computation";
+});
+```
+
+### 2. Attaching Callbacks
+
+You can attach callbacks to be executed when the future completes:
+
+```java
+future.thenAccept(result -> System.out.println("Got the result: " + result));
+```
+
+### 3. Chaining Operations
+
+Multiple operations can be chained using methods like `thenApply()`:
+
+```java
+CompletableFuture<String> future2 = CompletableFuture.supplyAsync(() -> "Hello")
+        .thenApply(s -> s + " World")
+        .thenApply(String::toUpperCase);
+
+System.out.println(future2.get()); // Prints: HELLO WORLD
+```
+
+### 4. Combining Multiple Futures
+
+You can combine the results of two independent futures:
+
+```java
+CompletableFuture<String> future3 = CompletableFuture.supplyAsync(() -> "Hello");
+CompletableFuture<String> future4 = CompletableFuture.supplyAsync(() -> "World");
+CompletableFuture<String> combinedFuture = future3.thenCombine(future4, (s1, s2) -> s1 + " " + s2);
+
+System.out.println(combinedFuture.get()); // Prints: Hello World
+```
+
+### 5. Handling Errors
+
+`CompletableFuture` provides methods for handling exceptions:
+
+```java
+CompletableFuture<String> futureWithException = CompletableFuture.supplyAsync(() -> {
+    if (true) throw new RuntimeException("Oops!");
+    return "This will not be returned";
+}).exceptionally(ex -> "Error: " + ex.getMessage());
+
+System.out.println(futureWithException.get()); // Prints: Error: java.lang.RuntimeException: Oops!
+```
+
+### 6. Timeouts
+
+You can specify timeouts for your asynchronous operations:
+
+```java
+CompletableFuture<String> futureWithTimeout = CompletableFuture.supplyAsync(() -> {
+    try {
+        TimeUnit.SECONDS.sleep(2);
+    } catch (InterruptedException e) {
+        throw new IllegalStateException(e);
+    }
+    return "Result after 2 seconds";
+}).completeOnTimeout("Timeout after 1 second", 1, TimeUnit.SECONDS);
+
+System.out.println(futureWithTimeout.get()); // Prints: Timeout after 1 second
+```
+
+## Conclusion
+
+`CompletableFuture` provides a powerful way to work with asynchronous computations in Java. It allows you to compose, combine, and handle errors in asynchronous operations in a more readable and maintainable way compared to traditional `Future` implementations.
