@@ -85,3 +85,10 @@ In this example:
 
 ### Conclusion:
 `CompletableFuture` brings a modern approach to asynchronous programming in Java. It simplifies the execution of non-blocking tasks, enhances error handling, and allows for smooth composition of multiple asynchronous operations, making it an essential tool for building efficient and scalable concurrent applications.
+
+
+CompletableFuture<String> future3 = CompletableFuture.supplyAsync(() -> "Hello");
+CompletableFuture<String> future4 = CompletableFuture.supplyAsync(() -> "World");
+CompletableFuture<String> combinedFuture = future3.thenCombine(future4, (s1, s2) -> s1 + " " + s2);
+
+System.out.println(combinedFuture.get()); // Prints: Hello World
